@@ -12,7 +12,7 @@ A Django web app that imports my Chess.com games and shows where I win, where I 
 - [x] Project setup and `Game` model, with tests running on every push
 - [x] Import games from the Chess.com public API (only new games each run)
 - [x] Dashboard: most common openings and win rate for each, results as White vs. Black, rating over time
-- [ ] REST API endpoint for the stats
+- [x] REST API endpoint for the stats (`/api/stats/`)
 - [ ] Deploy live
 
 **Phase 2: Stockfish analysis**
@@ -24,11 +24,30 @@ A Django web app that imports my Chess.com games and shows where I win, where I 
 - **Django** for the database models, pages, and admin
 - **Chess.com's public API** for game data
 - **python-chess** to read games (PGN) and talk to Stockfish
-- **SQLite** locally
+- **Postgres on Neon** in production, **SQLite** locally
+- **Vercel** for hosting, with a daily **Vercel Cron** import
 - **Server-rendered SVG** for the rating chart, so the page needs no JavaScript chart library
 - **GitHub Actions** runs the test suite on every push
 
 Each game is stored once, keyed by its platform and game ID, so re-running the importer only adds new games. Stockfish analysis will work the same way: each game is analyzed once and the results are saved, so pages never wait on the engine.
+
+## How new games get in
+
+Three ways, all sharing one importer that only saves games it hasn't seen:
+
+- **Every deploy:** `build.py` applies migrations and imports new games before the site goes live.
+- **Daily:** Vercel Cron calls `/cron/import/`, protected by a shared secret.
+- **On demand:** the **Refresh games** button (limited to once every 5 minutes).
+
+## API
+
+`GET /api/stats/` returns the dashboard's stats as JSON: overall record, openings as White and Black, best and toughest openings, how games end, ratings, and rating history. Add `?speed=blitz` (or `bullet`, `rapid`, `daily`) to filter.
+
+## Deploying on Vercel
+
+1. Import the repo into Vercel and add a Neon Postgres database from the Storage tab (this sets `DATABASE_URL`).
+2. Add environment variables: `DJANGO_SECRET_KEY`, `DJANGO_DEBUG=false`, `DJANGO_ALLOWED_HOSTS=.vercel.app`, `CHESSCOM_USERNAME`, and `CRON_SECRET`.
+3. Deploy. The first build imports the full game history.
 
 ## Running locally
 

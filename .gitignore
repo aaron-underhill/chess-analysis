@@ -4,4 +4,6 @@ __pycache__/
 venv/
 db.sqlite3
 .env
+.env.local
+.vercel/
 staticfiles/

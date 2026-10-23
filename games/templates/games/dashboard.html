@@ -1,15 +1,26 @@
 {% extends "games/base.html" %}
 
 {% block content %}
-<nav class="filters" aria-label="Time control">
-  <a href="{% url 'games:dashboard' %}" class="{% if not speed %}active{% endif %}">All games</a>
-  {% for row in speeds %}
-  <a href="?speed={{ row.speed }}" class="{% if speed == row.speed %}active{% endif %}">{{ row.label }} <span>{{ row.games }}</span></a>
-  {% endfor %}
-</nav>
+{% for message in messages %}
+<p class="message {{ message.tags }}">{{ message }}</p>
+{% endfor %}
+
+<div class="toolbar">
+  <nav class="filters" aria-label="Time control">
+    <a href="{% url 'games:dashboard' %}" class="{% if not speed %}active{% endif %}">All games</a>
+    {% for row in speeds %}
+    <a href="?speed={{ row.speed }}" class="{% if speed == row.speed %}active{% endif %}">{{ row.label }} <span>{{ row.games }}</span></a>
+    {% endfor %}
+  </nav>
+  <form method="post" action="{% url 'games:refresh' %}" class="refresh">
+    {% csrf_token %}
+    {% if last_import %}<span class="muted">Updated {{ last_import.finished_at|timesince }} ago</span>{% endif %}
+    <button type="submit">Refresh games</button>
+  </form>
+</div>
 
 {% if not totals.games %}
-<p class="empty">No games yet. Run <code>python manage.py import_games &lt;username&gt;</code> to import them.</p>
+<p class="empty">No games yet. Click <strong>Refresh games</strong> to import them.</p>
 {% else %}
 
 <section class="cards">

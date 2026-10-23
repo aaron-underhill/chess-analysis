@@ -68,3 +68,24 @@ class Game(models.Model):
 
     def __str__(self):
         return f"{self.played_at:%Y-%m-%d} vs {self.opponent} ({self.result}, {self.color})"
+
+
+class ImportRun(models.Model):
+    """One run of the importer, so the site can show when games were last
+    updated and keep the Refresh button from being spammed."""
+
+    class Source(models.TextChoices):
+        COMMAND = "command", "Command"
+        CRON = "cron", "Daily schedule"
+        REFRESH = "refresh", "Refresh button"
+
+    finished_at = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=10, choices=Source.choices)
+    months_checked = models.PositiveIntegerField(default=0)
+    new_games = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-finished_at"]
+
+    def __str__(self):
+        return f"{self.finished_at:%Y-%m-%d %H:%M} ({self.source}): {self.new_games} new"

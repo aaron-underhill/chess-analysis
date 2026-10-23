@@ -1,9 +1,11 @@
-from django.test import SimpleTestCase, TestCase
+from unittest import mock
+
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from . import chesscom
 from .charts import rating_chart
-from .models import Game
+from .models import Game, ImportRun
 from .stats import current_ratings, endings, rating_history, record_by_speed
 from .test_chesscom import raw_game
 
@@ -103,3 +105,65 @@ class RatingChartTests(SimpleTestCase):
         history = [{"speed": "rapid", "label": "Rapid", "points": [{"date": "2026-10-20", "rating": 1500}]}]
         [line] = rating_chart(history)["lines"]
         self.assertIsNotNone(line["dot"])
+
+
+class ApiTests(TestCase):
+    def test_stats_json(self):
+        add_game("a")
+        add_game("b", white_result="checkmated", black_result="win")
+        data = self.client.get(reverse("games:api_stats")).json()
+        self.assertEqual(data["speed"], "all")
+        self.assertEqual(data["totals"]["games"], 2)
+        self.assertEqual(data["white_openings"][0]["opening_name"], "Sicilian Defense Bowdler Attack")
+
+    def test_stats_json_by_speed(self):
+        add_game("a", time_class="blitz")
+        add_game("b", time_class="rapid")
+        data = self.client.get(reverse("games:api_stats"), {"speed": "blitz"}).json()
+        self.assertEqual((data["speed"], data["totals"]["games"]), ("blitz", 1))
+
+    def test_stats_only_allows_get(self):
+        self.assertEqual(self.client.post(reverse("games:api_stats")).status_code, 405)
+
+
+def fake_import(username, source=None, **kwargs):
+    """Stands in for the real importer so tests never call Chess.com."""
+    return ImportRun.objects.create(source=source, months_checked=1, new_games=3)
+
+
+@mock.patch("games.views.import_games", side_effect=fake_import)
+class RefreshTests(TestCase):
+    def test_refresh_imports_and_reports(self, importer):
+        response = self.client.post(reverse("games:refresh"), follow=True)
+        importer.assert_called_once()
+        self.assertContains(response, "Imported 3 new game(s).")
+
+    def test_refresh_has_a_cooldown(self, importer):
+        ImportRun.objects.create(source=ImportRun.Source.CRON)
+        response = self.client.post(reverse("games:refresh"), follow=True)
+        importer.assert_not_called()
+        self.assertContains(response, "Games were just updated")
+
+    def test_refresh_needs_post(self, importer):
+        self.assertEqual(self.client.get(reverse("games:refresh")).status_code, 405)
+
+
+@mock.patch("games.views.import_games", side_effect=fake_import)
+class CronTests(TestCase):
+    @override_settings(CRON_SECRET="s3cret")
+    def test_rejects_missing_or_wrong_secret(self, importer):
+        self.assertEqual(self.client.get(reverse("games:cron_import")).status_code, 403)
+        response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer nope")
+        self.assertEqual(response.status_code, 403)
+        importer.assert_not_called()
+
+    @override_settings(CRON_SECRET="")
+    def test_closed_when_no_secret_is_configured(self, importer):
+        response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer ")
+        self.assertEqual(response.status_code, 403)
+
+    @override_settings(CRON_SECRET="s3cret")
+    def test_runs_import_with_the_right_secret(self, importer):
+        response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer s3cret")
+        self.assertEqual(response.json(), {"months_checked": 1, "new_games": 3})
+        self.assertEqual(importer.call_args.kwargs["source"], ImportRun.Source.CRON)
