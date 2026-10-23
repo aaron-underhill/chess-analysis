@@ -1,0 +1,41 @@
+name: Save game snapshot
+
+# Imports games from Chess.com and saves them as games.json on the `data`
+# branch. Useful for loading real games into a local database:
+#   git fetch origin data && git show origin/data:games.json > games.json
+#   python manage.py loaddata games.json
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: Chess.com username
+        default: AaronDaGG
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+      - run: python manage.py migrate --verbosity 0
+      - run: python manage.py import_games "${{ inputs.username }}"
+      - run: python manage.py dumpdata games --output games.json
+
+      - name: Save to the data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan data
+          git rm -rfq --cached .
+          git add games.json
+          git commit -qm "Game snapshot"
+          git push -qf origin data
