@@ -1,0 +1,26 @@
+name: Import check
+
+# Runs the importer against real Chess.com data and prints a summary.
+# Started by hand from the Actions tab. Nothing is saved: the database
+# only exists for the length of the run.
+on:
+  workflow_dispatch:
+    inputs:
+      username:
+        description: Chess.com username
+        default: AaronDaGG
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+      - run: python manage.py migrate --verbosity 0
+      - run: python manage.py import_games "${{ inputs.username }}"
