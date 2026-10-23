@@ -23,4 +23,14 @@ jobs:
 
       - run: pip install -r requirements.txt
       - run: python manage.py migrate --verbosity 0
-      - run: python manage.py import_games "${{ inputs.username }}"
+      - name: Import games
+        run: |
+          python manage.py import_games "${{ inputs.username }}" | tee summary.txt
+          {
+            echo '```'
+            cat summary.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Also attach the summary to the run as a notice, so it shows up
+          # on the run's page without opening the logs.
+          echo "::notice title=Import summary::$(sed ':a;N;$!ba;s/\n/%0A/g' summary.txt)"
