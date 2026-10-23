@@ -12,8 +12,24 @@
   --track: #eceae5;
 }
 
+/* Dark theme: used when the toggle picks dark, or when the toggle hasn't
+   been used and the device prefers dark. */
+:root[data-theme="dark"] {
+  --bg: #14171b;
+  --surface: #1c2026;
+  --text: #e6e9ec;
+  --muted: #a8b0ba;
+  --border: #2c323a;
+  --accent: #60a5fa;
+  --good: #4ade80;
+  --good-soft: #14321f;
+  --bad: #f87171;
+  --bad-soft: #3a1a1a;
+  --track: #2a2f36;
+  color-scheme: dark;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #14171b;
     --surface: #1c2026;
     --text: #e6e9ec;
@@ -25,6 +41,7 @@
     --bad: #f87171;
     --bad-soft: #3a1a1a;
     --track: #2a2f36;
+    color-scheme: dark;
   }
 }
 
@@ -46,6 +63,21 @@ a { color: var(--accent); }
 .site-header { background: var(--surface); border-bottom: 1px solid var(--border); }
 .site-header .wrap { display: flex; justify-content: space-between; align-items: center; height: 56px; }
 .brand { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+.header-right { display: flex; align-items: center; gap: 14px; }
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.theme-toggle:hover { border-color: var(--muted); }
 .who { color: var(--muted); font-size: 14px; }
 
 .site-footer { color: var(--muted); font-size: 13px; padding: 32px 16px 40px; }
@@ -100,8 +132,12 @@ h2 { font-size: 16px; margin: 0 0 12px; }
 .sub { color: var(--muted); font-size: 13px; }
 
 /* Best and worst opening */
-.insights { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.insights { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 6px; }
+.insight-group { display: grid; gap: 10px; align-content: start; }
+.insight-group h2 { margin: 0; }
 .insight { padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left-width: 4px; }
+.insight b { color: var(--text); font-weight: 600; }
+.footnote { color: var(--muted); font-size: 12px; margin: 0 0 16px; }
 .insight.good { border-left-color: var(--good); }
 .insight.bad { border-left-color: var(--bad); }
 .insight strong { font-size: 16px; }
@@ -145,6 +181,7 @@ tr:last-child td { border-bottom: none; }
 .color.black { background: #222; }
 
 @media (max-width: 760px) {
+  .who { display: none; }
   .two-col, .insights { grid-template-columns: 1fr; }
   .endings li { grid-template-columns: 96px 1fr 76px; }
   .recent th:nth-child(4), .recent td:nth-child(4) { display: none; }

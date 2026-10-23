@@ -167,3 +167,32 @@ class CronTests(TestCase):
         response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer s3cret")
         self.assertEqual(response.json(), {"months_checked": 1, "new_games": 3})
         self.assertEqual(importer.call_args.kwargs["source"], ImportRun.Source.CRON)
+
+
+class BestAndToughestTests(TestCase):
+    ITALIAN = "https://www.chess.com/openings/Italian-Game"
+    FRENCH = "https://www.chess.com/openings/French-Defense"
+
+    def add(self, uuid, eco_url, won, me_white=True):
+        pgn = f'[ECO "C50"]\n[ECOUrl "{eco_url}"]\n\n1. e4 *'
+        if me_white:
+            kwargs = dict(white_result="win" if won else "checkmated", black_result="resigned" if won else "win")
+        else:
+            kwargs = dict(white="opponent1", black="AaronDaGG",
+                          white_result="checkmated" if won else "win", black_result="win" if won else "checkmated")
+        add_game(uuid, pgn=pgn, **kwargs)
+
+    def test_best_and_toughest_are_split_by_color(self):
+        # As White: Italian 3/3 wins, French 1/3. As Black: only French games.
+        for i in range(3):
+            self.add(f"wi{i}", self.ITALIAN, won=True)
+            self.add(f"wf{i}", self.FRENCH, won=(i == 0))
+            self.add(f"bf{i}", self.FRENCH, won=True, me_white=False)
+        response = self.client.get(reverse("games:dashboard"))
+        context = response.context
+        self.assertEqual(context["best_white"]["opening_name"], "Italian Game")
+        self.assertEqual(context["toughest_white"]["opening_name"], "French Defense")
+        self.assertEqual(context["toughest_white"]["games"], 3)
+        # Only one opening as Black, so there's nothing to compare.
+        self.assertIsNone(context["best_black"])
+        self.assertContains(response, "Not enough games as Black yet.")

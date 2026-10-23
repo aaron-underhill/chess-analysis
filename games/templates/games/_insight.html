@@ -1,0 +1,6 @@
+<div class="insight {{ kind }}">
+  <div class="label">{{ title }}</div>
+  <strong>{{ row.opening_name }}</strong>
+  <span><b>{{ row.win_rate }}% wins</b> in {{ row.games }} game{{ row.games|pluralize }}
+    <span class="muted">({{ row.wins }} W &middot; {{ row.losses }} L &middot; {{ row.draws }} D)</span></span>
+</div>

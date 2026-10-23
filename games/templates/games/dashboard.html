@@ -41,19 +41,21 @@
   {% endfor %}
 </section>
 
-{% if best_opening and worst_opening and best_opening != worst_opening %}
+{% if best_white or best_black %}
 <section class="insights">
-  <div class="insight good">
-    <div class="label">Best opening</div>
-    <strong>{{ best_opening.opening_name }}</strong>
-    <span>{{ best_opening.win_rate }}% wins in {{ best_opening.games }} games</span>
+  {% for side, best, toughest in insight_sides %}
+  <div class="insight-group">
+    <h2>Playing {{ side }}</h2>
+    {% if best %}
+    {% include "games/_insight.html" with kind="good" title="Best opening" row=best %}
+    {% include "games/_insight.html" with kind="bad" title="Toughest opening" row=toughest %}
+    {% else %}
+    <p class="empty">Not enough games as {{ side }} yet.</p>
+    {% endif %}
   </div>
-  <div class="insight bad">
-    <div class="label">Toughest opening</div>
-    <strong>{{ worst_opening.opening_name }}</strong>
-    <span>{{ worst_opening.win_rate }}% wins in {{ worst_opening.games }} games</span>
-  </div>
+  {% endfor %}
 </section>
+<p class="footnote">Openings need at least {{ insight_min_games }} games as that color to count here.</p>
 {% endif %}
 
 <section class="panel">

@@ -13,9 +13,11 @@ from . import charts, stats
 from .importer import import_games
 from .models import Game, ImportRun
 
-# An opening needs this many games before it counts as a "best" or "worst"
-# opening, so a lucky 3-0 doesn't top the list.
-INSIGHT_MIN_GAMES = 20
+# An opening needs this many games (as that color) before it can be called
+# my best or toughest, so a lucky 3-0 doesn't top the list. With a small
+# filtered set, like only rapid games, the bar drops so there's still an answer.
+INSIGHT_MIN_GAMES = 10
+INSIGHT_MIN_GAMES_SMALL = 3
 
 # The Refresh button can run at most once in this window, so repeated
 # clicks don't hammer Chess.com's API.
@@ -30,19 +32,43 @@ def filtered_games(request):
     return "", Game.objects.all()
 
 
+def best_and_toughest(games, min_games):
+    """My best and toughest opening in a set of games (usually one color).
+
+    Best is the highest win rate; toughest is the lowest. Ties go to the
+    opening played more often. Returns (None, None) if fewer than two
+    openings have enough games to compare.
+    """
+    rows = stats.opening_stats(games, min_games=min_games)
+    if len(rows) < 2:
+        return None, None
+    best = max(rows, key=lambda r: (r["win_rate"], r["games"]))
+    toughest = min(rows, key=lambda r: (r["win_rate"], -r["games"]))
+    return best, toughest
+
+
 def summary(games):
     """Every stat shown on the dashboard, for a set of games.
 
     Used by both the dashboard page and the JSON API, so they always agree.
     """
-    min_games = 5 if games.count() >= 200 else 2  # fewer games, lower bar
-    openings = stats.opening_stats(games, min_games=INSIGHT_MIN_GAMES)
+    big = games.count() >= 200
+    table_min = 5 if big else 2  # fewer games, lower bar
+    insight_min = INSIGHT_MIN_GAMES if big else INSIGHT_MIN_GAMES_SMALL
+
+    as_white = games.filter(color=Game.Color.WHITE)
+    as_black = games.filter(color=Game.Color.BLACK)
+    best_white, toughest_white = best_and_toughest(as_white, insight_min)
+    best_black, toughest_black = best_and_toughest(as_black, insight_min)
     return {
         "totals": stats.record(games),
-        "white_openings": stats.opening_stats(games.filter(color=Game.Color.WHITE), min_games)[:8],
-        "black_openings": stats.opening_stats(games.filter(color=Game.Color.BLACK), min_games)[:8],
-        "best_opening": max(openings, key=lambda r: r["win_rate"], default=None),
-        "worst_opening": min(openings, key=lambda r: r["win_rate"], default=None),
+        "white_openings": stats.opening_stats(as_white, table_min)[:8],
+        "black_openings": stats.opening_stats(as_black, table_min)[:8],
+        "best_white": best_white,
+        "toughest_white": toughest_white,
+        "best_black": best_black,
+        "toughest_black": toughest_black,
+        "insight_min_games": insight_min,
         "win_endings": stats.endings(games, Game.Result.WIN),
         "loss_endings": stats.endings(games, Game.Result.LOSS),
     }
@@ -60,6 +86,10 @@ def dashboard(request):
         "recent_games": games[:10],
         "last_import": ImportRun.objects.first(),
     }
+    context["insight_sides"] = [
+        ("White", context["best_white"], context["toughest_white"]),
+        ("Black", context["best_black"], context["toughest_black"]),
+    ]
     return render(request, "games/dashboard.html", context)
 
 
