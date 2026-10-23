@@ -154,6 +154,15 @@ STATIC_URL = "static/"
 # Vercel runs collectstatic into this folder and serves it from its CDN.
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Send warnings (like a rejected cron request) to the console, which Vercel
+# shows in the project's runtime logs.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"games": {"handlers": ["console"], "level": "INFO"}},
+}
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-auto-field
 

@@ -159,8 +159,17 @@ class CronTests(TestCase):
 
     @override_settings(CRON_SECRET="")
     def test_closed_when_no_secret_is_configured(self, importer):
-        response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer ")
+        with self.assertLogs("games.views", level="WARNING") as logs:
+            response = self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer ")
         self.assertEqual(response.status_code, 403)
+        self.assertIn("CRON_SECRET isn't set", logs.output[0])
+
+    @override_settings(CRON_SECRET="s3cret")
+    def test_logs_why_a_request_was_rejected_without_the_secret(self, importer):
+        with self.assertLogs("games.views", level="WARNING") as logs:
+            self.client.get(reverse("games:cron_import"), HTTP_AUTHORIZATION="Bearer wrong")
+        self.assertIn("didn't match", logs.output[0])
+        self.assertNotIn("s3cret", logs.output[0])
 
     @override_settings(CRON_SECRET="s3cret")
     def test_runs_import_with_the_right_secret(self, importer):

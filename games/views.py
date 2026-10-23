@@ -1,4 +1,5 @@
 import hmac
+import logging
 from datetime import timedelta
 
 import requests
@@ -12,6 +13,8 @@ from django.views.decorators.http import require_GET, require_POST
 from . import charts, stats
 from .importer import import_games
 from .models import Game, ImportRun
+
+logger = logging.getLogger(__name__)
 
 # An opening needs this many games (as that color) before it can be called
 # my best or toughest, so a lucky 3-0 doesn't top the list. With a small
@@ -132,6 +135,15 @@ def cron_import(request):
     expected = f"Bearer {settings.CRON_SECRET}"
     given = request.headers.get("Authorization", "")
     if not settings.CRON_SECRET or not hmac.compare_digest(given, expected):
+        # Say why in the server logs (never the secret itself), so a
+        # misconfigured deploy is easy to diagnose.
+        if not settings.CRON_SECRET:
+            reason = "CRON_SECRET isn't set on this deployment (add it, then redeploy)"
+        elif not given:
+            reason = "the request had no Authorization header"
+        else:
+            reason = "the Authorization header didn't match CRON_SECRET"
+        logger.warning("Rejected /cron/import/: %s", reason)
         return HttpResponseForbidden("Not allowed")
 
     run = import_games(settings.CHESSCOM_USERNAME, source=ImportRun.Source.CRON)
