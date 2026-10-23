@@ -2,6 +2,8 @@
 
 A Django web app that imports my Chess.com games and shows where I win, where I lose, and why: my most common openings, how each one goes for me, and (with Stockfish) the moves where games slip away.
 
+**Live site: [chess-analysis-inky.vercel.app](https://chess-analysis-inky.vercel.app/)** · Stats API: [`/api/stats/`](https://chess-analysis-inky.vercel.app/api/stats/)
+
 > Work in progress. Built in stages; this README grows with each one.
 
 ![Dashboard showing my record, ratings, best and toughest openings, rating over time, and openings as White and Black](docs/dashboard.png)
@@ -13,7 +15,7 @@ A Django web app that imports my Chess.com games and shows where I win, where I 
 - [x] Import games from the Chess.com public API (only new games each run)
 - [x] Dashboard: most common openings and win rate for each, results as White vs. Black, rating over time
 - [x] REST API endpoint for the stats (`/api/stats/`)
-- [ ] Deploy live
+- [x] Deploy live on Vercel with a Neon Postgres database and a daily import
 
 **Phase 2: Stockfish analysis**
 - [ ] Analyze each game once with Stockfish and store every move's evaluation
