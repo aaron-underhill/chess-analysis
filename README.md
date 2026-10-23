@@ -1,6 +1,6 @@
 # Chess Analysis
 
-A Django web app that imports my online chess games and shows where I win, where I lose, and why: my most common openings, how each one goes for me, and (with Stockfish) the moves where games slip away.
+A Django web app that imports my Chess.com games and shows where I win, where I lose, and why: my most common openings, how each one goes for me, and (with Stockfish) the moves where games slip away.
 
 > Work in progress. Built in stages; this README grows with each one.
 
@@ -8,7 +8,7 @@ A Django web app that imports my online chess games and shows where I win, where
 
 **Phase 1: Django core**
 - [x] Project setup and `Game` model, with tests running on every push
-- [ ] Import games from the Lichess / Chess.com public APIs (only new games each run)
+- [x] Import games from the Chess.com public API (only new games each run)
 - [ ] Dashboard: most common openings and win rate for each, results as White vs. Black, rating over time
 - [ ] REST API endpoint for the stats
 - [ ] Deploy live
@@ -20,6 +20,7 @@ A Django web app that imports my online chess games and shows where I win, where
 ## How it's built
 
 - **Django** for the database models, pages, and admin
+- **Chess.com's public API** for game data
 - **python-chess** to read games (PGN) and talk to Stockfish
 - **SQLite** locally
 - **GitHub Actions** runs the test suite on every push
@@ -40,7 +41,13 @@ python manage.py createsuperuser  # to log in to the admin
 python manage.py runserver
 ```
 
-Then open http://127.0.0.1:8000/admin.
+Import your games, then open http://127.0.0.1:8000/admin:
+
+```bash
+python manage.py import_games <chess.com username>
+```
+
+The first run imports every game; later runs only fetch new ones.
 
 Run the tests with:
 
