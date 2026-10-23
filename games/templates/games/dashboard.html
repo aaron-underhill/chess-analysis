@@ -1,0 +1,122 @@
+{% extends "games/base.html" %}
+
+{% block content %}
+<nav class="filters" aria-label="Time control">
+  <a href="{% url 'games:dashboard' %}" class="{% if not speed %}active{% endif %}">All games</a>
+  {% for row in speeds %}
+  <a href="?speed={{ row.speed }}" class="{% if speed == row.speed %}active{% endif %}">{{ row.label }} <span>{{ row.games }}</span></a>
+  {% endfor %}
+</nav>
+
+{% if not totals.games %}
+<p class="empty">No games yet. Run <code>python manage.py import_games &lt;username&gt;</code> to import them.</p>
+{% else %}
+
+<section class="cards">
+  <div class="card">
+    <div class="label">Games</div>
+    <div class="value">{{ totals.games }}</div>
+    <div class="sub">{{ totals.wins }} W &middot; {{ totals.losses }} L &middot; {{ totals.draws }} D</div>
+  </div>
+  <div class="card">
+    <div class="label">Win rate</div>
+    <div class="value">{{ totals.win_rate }}%</div>
+  </div>
+  {% for r in ratings %}
+  <div class="card">
+    <div class="label">{{ r.label }} rating</div>
+    <div class="value">{{ r.rating }}</div>
+  </div>
+  {% endfor %}
+</section>
+
+{% if best_opening and worst_opening and best_opening != worst_opening %}
+<section class="insights">
+  <div class="insight good">
+    <div class="label">Best opening</div>
+    <strong>{{ best_opening.opening_name }}</strong>
+    <span>{{ best_opening.win_rate }}% wins in {{ best_opening.games }} games</span>
+  </div>
+  <div class="insight bad">
+    <div class="label">Toughest opening</div>
+    <strong>{{ worst_opening.opening_name }}</strong>
+    <span>{{ worst_opening.win_rate }}% wins in {{ worst_opening.games }} games</span>
+  </div>
+</section>
+{% endif %}
+
+<section class="panel">
+  <h2>Rating over time</h2>
+  {% with c=rating_chart %}{% if c %}
+  <ul class="legend">
+    {% for line in c.lines %}<li><span class="swatch {{ line.speed }}"></span>{{ line.label }} <span class="muted">{{ line.latest }}</span></li>{% endfor %}
+  </ul>
+  <div class="chart-scroll">
+  <svg class="chart" viewBox="0 0 {{ c.width }} {{ c.height }}" role="img" aria-label="Rating over time by time control">
+    {% for t in c.y_ticks %}
+    <line class="grid" x1="{{ c.left }}" x2="{{ c.right }}" y1="{{ t.y }}" y2="{{ t.y }}"/>
+    <text class="tick" x="{{ c.left|add:"-8" }}" y="{{ t.y }}" text-anchor="end" dominant-baseline="middle">{{ t.label }}</text>
+    {% endfor %}
+    {% for t in c.x_ticks %}
+    <text class="tick" x="{{ t.x }}" y="{{ c.height|add:"-8" }}" text-anchor="{% if forloop.first %}start{% elif forloop.last %}end{% else %}middle{% endif %}">{{ t.label }}</text>
+    {% endfor %}
+    {% for line in c.lines %}
+    <path class="line {{ line.speed }}" d="{{ line.path }}"/>
+    {% if line.dot %}<circle class="dot {{ line.speed }}" cx="{{ line.dot.0 }}" cy="{{ line.dot.1 }}" r="4"/>{% endif %}
+    {% endfor %}
+  </svg>
+  </div>
+  {% endif %}{% endwith %}
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <h2>Openings as White</h2>
+    {% include "games/_opening_table.html" with openings=white_openings %}
+  </section>
+  <section class="panel">
+    <h2>Openings as Black</h2>
+    {% include "games/_opening_table.html" with openings=black_openings %}
+  </section>
+</div>
+
+<div class="two-col">
+  <section class="panel">
+    <h2>How I win</h2>
+    {% include "games/_endings.html" with endings=win_endings total=totals.wins kind="good" %}
+  </section>
+  <section class="panel">
+    <h2>How I lose</h2>
+    {% include "games/_endings.html" with endings=loss_endings total=totals.losses kind="bad" %}
+  </section>
+</div>
+
+<section class="panel">
+  <h2>Recent games</h2>
+  <table class="recent">
+    <thead>
+      <tr><th>Date</th><th>Result</th><th>Opponent</th><th>Opening</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for game in recent_games %}
+      <tr>
+        <td>{{ game.played_at|date:"n/j/y" }}</td>
+        <td><span class="result {{ game.result }}">{{ game.get_result_display }}</span> <span class="color {{ game.color }}" title="Played {{ game.color }}"></span></td>
+        <td>{{ game.opponent }}{% if game.opponent_rating %} <span class="muted">({{ game.opponent_rating }})</span>{% endif %}</td>
+        <td>{{ game.opening_name|default:"&mdash;" }}</td>
+        <td>{% if game.url %}<a href="{{ game.url }}" target="_blank" rel="noopener">View</a>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // On narrow screens the chart scrolls sideways; start at the newest games.
+  document.querySelectorAll(".chart-scroll").forEach(el => { el.scrollLeft = el.scrollWidth; });
+</script>
+{% endblock %}

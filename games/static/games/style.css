@@ -1,0 +1,154 @@
+:root {
+  --bg: #f6f5f2;
+  --surface: #ffffff;
+  --text: #1f2933;
+  --muted: #5b6470;
+  --border: #e3e1dc;
+  --accent: #2563eb;
+  --good: #15803d;
+  --good-soft: #dcfce7;
+  --bad: #b91c1c;
+  --bad-soft: #fee2e2;
+  --track: #eceae5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171b;
+    --surface: #1c2026;
+    --text: #e6e9ec;
+    --muted: #a8b0ba;
+    --border: #2c323a;
+    --accent: #60a5fa;
+    --good: #4ade80;
+    --good-soft: #14321f;
+    --bad: #f87171;
+    --bad-soft: #3a1a1a;
+    --track: #2a2f36;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a { color: var(--accent); }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+.site-header { background: var(--surface); border-bottom: 1px solid var(--border); }
+.site-header .wrap { display: flex; justify-content: space-between; align-items: center; height: 56px; }
+.brand { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+.who { color: var(--muted); font-size: 14px; }
+
+.site-footer { color: var(--muted); font-size: 13px; padding: 32px 16px 40px; }
+
+h2 { font-size: 16px; margin: 0 0 12px; }
+
+.muted { color: var(--muted); }
+.empty { color: var(--muted); }
+
+/* Time control filter */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 16px; }
+.filters a {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+}
+.filters a span { color: var(--muted); margin-left: 4px; }
+.filters a.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+.filters a.active span { color: var(--bg); opacity: 0.7; }
+
+/* Stat cards */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.card, .panel, .insight {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.card { padding: 14px 16px; }
+.label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+.value { font-size: 26px; font-weight: 700; margin-top: 2px; }
+.sub { color: var(--muted); font-size: 13px; }
+
+/* Best and worst opening */
+.insights { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.insight { padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; border-left-width: 4px; }
+.insight.good { border-left-color: var(--good); }
+.insight.bad { border-left-color: var(--bad); }
+.insight strong { font-size: 16px; }
+.insight span { color: var(--muted); font-size: 14px; }
+
+.panel { padding: 16px; margin-bottom: 16px; overflow-x: auto; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.two-col .panel { margin-bottom: 16px; }
+
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+td { padding: 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+.num { text-align: right; white-space: nowrap; }
+.eco { color: var(--muted); font-size: 12px; }
+
+.rate { position: relative; min-width: 110px; height: 22px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.rate .bar { position: absolute; inset: 0 auto 0 0; background: var(--muted); opacity: 0.35; }
+.rate.good .bar { background: var(--good); opacity: 0.45; }
+.rate.bad .bar { background: var(--bad); opacity: 0.45; }
+.rate .pct { position: relative; padding-left: 8px; font-size: 13px; font-weight: 600; line-height: 22px; }
+
+/* How games end */
+.endings { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.endings li { display: grid; grid-template-columns: 120px 1fr 90px; align-items: center; gap: 10px; font-size: 14px; }
+.endings .track { height: 10px; background: var(--track); border-radius: 5px; overflow: hidden; }
+.endings .bar { display: block; height: 100%; border-radius: 5px; }
+.endings .bar.good { background: var(--good); }
+.endings .bar.bad { background: var(--bad); }
+.endings .count { text-align: right; }
+
+/* Recent games */
+.result { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+.result.win { background: var(--good-soft); color: var(--good); }
+.result.loss { background: var(--bad-soft); color: var(--bad); }
+.result.draw { background: var(--track); color: var(--muted); }
+.color { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--muted); vertical-align: middle; margin-left: 4px; }
+.color.white { background: #fff; }
+.color.black { background: #222; }
+
+@media (max-width: 760px) {
+  .two-col, .insights { grid-template-columns: 1fr; }
+  .endings li { grid-template-columns: 96px 1fr 76px; }
+  .recent th:nth-child(4), .recent td:nth-child(4) { display: none; }
+  .openings th:nth-child(3), .openings td:nth-child(3) { display: none; }
+  .rate { min-width: 72px; }
+  .chart-scroll { overflow-x: auto; }
+  .chart-scroll .chart { min-width: 640px; }
+  .recent td:first-child { white-space: nowrap; }
+}
+
+/* Rating chart (inline SVG) */
+.chart { display: block; width: 100%; height: auto; }
+.chart .grid { stroke: var(--border); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 13px; }
+.chart .line { fill: none; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.legend { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 16px; font-size: 14px; }
+.legend li { display: flex; align-items: center; gap: 6px; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.line.bullet, .dot.bullet { stroke: #c2410c; fill: #c2410c; } .swatch.bullet { background: #c2410c; }
+.line.blitz, .dot.blitz { stroke: #2563eb; fill: #2563eb; } .swatch.blitz { background: #2563eb; }
+.line.rapid, .dot.rapid { stroke: #15803d; fill: #15803d; } .swatch.rapid { background: #15803d; }
+.line.classical, .dot.classical { stroke: #7c3aed; fill: #7c3aed; } .swatch.classical { background: #7c3aed; }
+.line.daily, .dot.daily { stroke: #a16207; fill: #a16207; } .swatch.daily { background: #a16207; }
+.line { fill: none !important; }

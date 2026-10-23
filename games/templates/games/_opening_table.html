@@ -1,0 +1,24 @@
+{% if openings %}
+<table class="openings">
+  <thead>
+    <tr><th>Opening</th><th class="num">Games</th><th class="num">W / L / D</th><th>Win rate</th></tr>
+  </thead>
+  <tbody>
+    {% for row in openings %}
+    <tr>
+      <td>{{ row.opening_name }}{% if row.eco %} <span class="eco">{{ row.eco }}</span>{% endif %}</td>
+      <td class="num">{{ row.games }}</td>
+      <td class="num">{{ row.wins }} / {{ row.losses }} / {{ row.draws }}</td>
+      <td>
+        <div class="rate {% if row.win_rate >= 55 %}good{% elif row.win_rate < 45 %}bad{% endif %}">
+          <span class="bar" style="width: {{ row.win_rate }}%"></span>
+          <span class="pct">{{ row.win_rate }}%</span>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="empty">Not enough games yet.</p>
+{% endif %}

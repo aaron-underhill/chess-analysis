@@ -4,12 +4,14 @@ A Django web app that imports my Chess.com games and shows where I win, where I 
 
 > Work in progress. Built in stages; this README grows with each one.
 
+![Dashboard showing my record, ratings, best and toughest openings, rating over time, and openings as White and Black](docs/dashboard.png)
+
 ## Plan
 
 **Phase 1: Django core**
 - [x] Project setup and `Game` model, with tests running on every push
 - [x] Import games from the Chess.com public API (only new games each run)
-- [ ] Dashboard: most common openings and win rate for each, results as White vs. Black, rating over time
+- [x] Dashboard: most common openings and win rate for each, results as White vs. Black, rating over time
 - [ ] REST API endpoint for the stats
 - [ ] Deploy live
 
@@ -23,6 +25,7 @@ A Django web app that imports my Chess.com games and shows where I win, where I 
 - **Chess.com's public API** for game data
 - **python-chess** to read games (PGN) and talk to Stockfish
 - **SQLite** locally
+- **Server-rendered SVG** for the rating chart, so the page needs no JavaScript chart library
 - **GitHub Actions** runs the test suite on every push
 
 Each game is stored once, keyed by its platform and game ID, so re-running the importer only adds new games. Stockfish analysis will work the same way: each game is analyzed once and the results are saved, so pages never wait on the engine.
@@ -48,6 +51,14 @@ python manage.py import_games <chess.com username>
 ```
 
 The first run imports every game; later runs only fetch new ones.
+
+To load a saved snapshot of real games instead (from the `data` branch):
+
+```bash
+git fetch origin data
+git show origin/data:games.json > games.json
+python manage.py loaddata games.json
+```
 
 Run the tests with:
 

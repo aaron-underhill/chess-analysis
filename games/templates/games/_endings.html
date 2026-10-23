@@ -1,0 +1,13 @@
+{% if endings %}
+<ul class="endings">
+  {% for row in endings %}
+  <li>
+    <span class="name">{{ row.termination|capfirst }}</span>
+    <span class="track"><span class="bar {{ kind }}" style="width: {% widthratio row.games total 100 %}%"></span></span>
+    <span class="count">{{ row.games }} <span class="muted">({% widthratio row.games total 100 %}%)</span></span>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No games yet.</p>
+{% endif %}

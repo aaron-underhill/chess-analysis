@@ -1,0 +1,25 @@
+{% load static %}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Chess Analysis{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'games/style.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="{% url 'games:dashboard' %}">&#9822; Chess Analysis</a>
+      <span class="who">AaronDaGG on Chess.com</span>
+    </div>
+  </header>
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="wrap site-footer">
+    Built with Django by Aaron Underhill &middot;
+    <a href="https://github.com/aaron-underhill/chess-analysis">Source on GitHub</a>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
